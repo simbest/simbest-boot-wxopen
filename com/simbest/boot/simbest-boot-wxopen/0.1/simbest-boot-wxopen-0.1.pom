@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+<project
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+        xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.simbest.boot</groupId>
+    <artifactId>simbest-boot-wxopen</artifactId>
+    <version>0.1</version>
+    <packaging>jar</packaging>
+    <name>${project.artifactId}</name>
+    <description>Spring Boot WeChat 开放平台</description>
+
+    <properties>
+        <jdk.version>1.8</jdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.locales>zh_CN</project.build.locales>
+
+        <simbest.version>0.1</simbest.version>
+		<weixin-java-open.version>3.3.0</weixin-java-open.version>
+
+		<maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+		<maven-resources-plugin.version>2.6</maven-resources-plugin.version>
+		<maven-source-plugin.version>2.3</maven-source-plugin.version>
+		<maven-deploy-plugin.version>2.8.1</maven-deploy-plugin.version>
+		<github-site-maven-plugin.version>0.11</github-site-maven-plugin.version>
+		<github.global.server>github</github.global.server>
+    </properties>
+
+    <dependencies>
+		<dependency>
+            <groupId>com.simbest.boot</groupId>
+            <artifactId>simbest-boot-cores</artifactId>
+            <version>${simbest.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>weixin-java-open</artifactId>
+            <version>${weixin-java-open.version}</version>
+        </dependency>  
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+			<!-- 编译器插件 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+			<!-- 依赖库源码插件 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<!-- 资源文件编码插件 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+			</plugin>
+			<!-- 依赖库发布插件 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+			</plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+			<!-- 编译器插件 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven-compiler-plugin.version}</version>
+					<configuration>
+						<source>${jdk.version}</source>
+						<target>${jdk.version}</target>
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+				<!-- 依赖库源码插件 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>${maven-source-plugin.version}</version>
+					<configuration>  
+	                    <attach>true</attach>
+	                </configuration> 
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!-- 资源文件编码插件 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>${maven-resources-plugin.version}</version>
+					<configuration>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                        <useDefaultDelimiters>true</useDefaultDelimiters>
+                    </configuration>
+				</plugin>
+				<!-- 依赖库发布插件 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${maven-deploy-plugin.version}</version>
+                    <configuration>
+                        <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo
+                        </altDeploymentRepository>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.github</groupId>
+                    <artifactId>site-maven-plugin</artifactId>
+                    <version>${github-site-maven-plugin.version}</version>
+                    <configuration>
+                        <message>Maven artifacts for ${project.version}</message>
+                        <noJekyll>true</noJekyll>
+                        <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
+                        <branch>refs/heads/mvn-repo</branch>
+                        <includes>
+                            <include>**/*</include>
+                        </includes>
+                        <repositoryName>${project.artifactId}</repositoryName>
+                        <repositoryOwner>simbest</repositoryOwner>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>site</goal>
+                            </goals>
+                            <phase>deploy</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+	<distributionManagement>
+		<repository>
+			<id>internal.repo</id>
+			<name>Temporary Staging Repository</name>
+			<url>file://${project.build.directory}/mvn-repo</url>
+		</repository>
+	</distributionManagement>
+</project>
