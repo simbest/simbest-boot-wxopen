@@ -14,8 +14,10 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "wechat.testmp")
-public class WechatTestMpProperties {
+@ConfigurationProperties(prefix = "wechat.mp")
+public class WechatMpProperties {
 
-    private String[] accounts;
+    private String[] testAccounts;
+
+    private String managerAppid;
 }

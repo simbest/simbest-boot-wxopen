@@ -19,12 +19,12 @@ public class NullHandler extends AbstractHandler {
   public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage,
                                   Map<String, Object> context, WxMpService wxMpService,
                                   WxSessionManager sessionManager) {
-    return empty(wxMessage);
+    return null;
   }
 
-  public static WxMpXmlOutMessage empty(WxMpXmlMessage wxMessage){
-      return WxMpXmlOutMessage.TEXT().content("").fromUser(wxMessage.getToUser()).toUser(wxMessage.getFromUser())
-              .build();
-  }
+//  public static WxMpXmlOutMessage empty(WxMpXmlMessage wxMessage){
+//      return WxMpXmlOutMessage.TEXT().content("").fromUser(wxMessage.getToUser()).toUser(wxMessage.getFromUser())
+//              .build();
+//  }
 
 }

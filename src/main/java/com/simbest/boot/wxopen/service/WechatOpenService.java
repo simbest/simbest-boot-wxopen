@@ -5,6 +5,7 @@ package com.simbest.boot.wxopen.service;
 
 import com.simbest.boot.wxopen.config.WechatOpenProperties;
 import com.simbest.boot.wxopen.config.WxOpenRedisConfigStorage;
+import com.simbest.boot.wxopen.mp.handler.ICustomHandler;
 import com.simbest.boot.wxopen.mp.handler.IKfSessionHandler;
 import com.simbest.boot.wxopen.mp.handler.ILocationHandler;
 import com.simbest.boot.wxopen.mp.handler.IMenuHandler;
@@ -53,12 +54,13 @@ public class WechatOpenService extends WxOpenServiceImpl {
     private IUnsubscribeHandler unsubscribeHandler;
     private ISubscribeHandler subscribeHandler;
     private IScanHandler scanHandler;
+    private ICustomHandler customHandler;
 
     @Autowired
     public WechatOpenService(LogHandler logHandler, NullHandler nullHandler, IKfSessionHandler kfSessionHandler,
                              IStoreCheckNotifyHandler storeCheckNotifyHandler, ILocationHandler locationHandler,
                              IMenuHandler menuHandler, IMsgHandler msgHandler, IUnsubscribeHandler unsubscribeHandler,
-                             ISubscribeHandler subscribeHandler, IScanHandler scanHandler) {
+                             ISubscribeHandler subscribeHandler, IScanHandler scanHandler, ICustomHandler customHandler) {
         this.logHandler = logHandler;
         this.nullHandler = nullHandler;
         this.kfSessionHandler = kfSessionHandler;
@@ -69,6 +71,7 @@ public class WechatOpenService extends WxOpenServiceImpl {
         this.unsubscribeHandler = unsubscribeHandler;
         this.subscribeHandler = subscribeHandler;
         this.scanHandler = scanHandler;
+        this.customHandler = customHandler;
     }
 
     @PostConstruct
@@ -78,7 +81,6 @@ public class WechatOpenService extends WxOpenServiceImpl {
         redisConfigStorage.setComponentAppSecret(wechatOpenProperties.getComponentSecret());
         redisConfigStorage.setComponentToken(wechatOpenProperties.getComponentToken());
         redisConfigStorage.setComponentAesKey(wechatOpenProperties.getComponentAesKey());
-        setWxOpenConfigStorage(redisConfigStorage);
         setWxOpenConfigStorage(redisConfigStorage);
         this.refreshRouter();
     }
