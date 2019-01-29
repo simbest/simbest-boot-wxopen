@@ -3,11 +3,17 @@
  */
 package com.simbest.boot.wxopen.config;
 
+import com.github.wenhao.jpa.Specifications;
 import com.mzlion.core.lang.Assert;
 import com.simbest.boot.util.redis.RedisUtil;
+import com.simbest.boot.wxopen.auth.model.OpenAuthorizationInfo;
+import com.simbest.boot.wxopen.auth.service.IOpenAuthorizationInfoService;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.open.api.impl.WxOpenInMemoryConfigStorage;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +45,13 @@ public class WxOpenRedisConfigStorage extends WxOpenInMemoryConfigStorage {
     private String jsapiTicketKey;
     private String cardApiTicket;
 
+    @Setter @Getter
+    private IOpenAuthorizationInfoService openAuthorizationInfoService;
+
+    /**
+     * 通过WechatOpenService构建实例
+     * @param keyPrefix
+     */
     public WxOpenRedisConfigStorage(String keyPrefix) {
         Assert.notNull(keyPrefix, "Wechat redis key prefix can not be empty!");
         this.keyPrefix = keyPrefix;
@@ -107,6 +120,16 @@ public class WxOpenRedisConfigStorage extends WxOpenInMemoryConfigStorage {
     @Override
     public String getAuthorizerRefreshToken(String appId) {
         String val = RedisUtil.get(this.getKey(this.authorizerRefreshTokenKey, appId));
+        if(StringUtils.isEmpty(val)) {
+            Specification<OpenAuthorizationInfo> specification = Specifications.<OpenAuthorizationInfo>and()
+                    .eq("authorizerAppid", appId)
+                    .build();
+            Iterable<OpenAuthorizationInfo> authorizationInfoIterable = openAuthorizationInfoService.findAllNoPage(specification);
+            if(authorizationInfoIterable.iterator().hasNext()) {
+                val = authorizationInfoIterable.iterator().next().getAuthorizerRefreshToken();
+                setAuthorizerRefreshToken(appId, val);
+            }
+        }
         log.debug(LOGTAG + "getAuthorizerRefreshToken {}", val);
         return val;
     }

@@ -1,8 +1,11 @@
 package com.simbest.boot.wxopen.controller;
 
 
+import com.github.wenhao.jpa.Specifications;
 import com.simbest.boot.base.exception.Exceptions;
 import com.simbest.boot.wxopen.WeChatConstant;
+import com.simbest.boot.wxopen.auth.model.OpenAuthorizationInfo;
+import com.simbest.boot.wxopen.auth.service.IOpenAuthorizationInfoService;
 import com.simbest.boot.wxopen.config.WechatMpProperties;
 import com.simbest.boot.wxopen.mp.handler.ICustomHandler;
 import com.simbest.boot.wxopen.service.WechatOpenService;
@@ -14,6 +17,7 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.open.bean.message.WxOpenXmlMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,10 +43,13 @@ public class WechatNotifyController {
     private WechatMpProperties wechatMpProperties;
 
     @Autowired
-    protected WechatOpenService wxOpenService;
+    protected WechatOpenService wechatOpenService;
 
     @Autowired
     protected ICustomHandler customHandler;
+
+    @Autowired
+    private IOpenAuthorizationInfoService openAuthorizationInfoService;
 
     @ApiOperation(value = "每十分钟接收一下微信ticket")
     @RequestMapping("/receive_ticket")
@@ -56,23 +63,30 @@ public class WechatNotifyController {
                 signature, encType, msgSignature, timestamp, nonce, requestBody);
 
         if (!StringUtils.equalsIgnoreCase("aes", encType)
-                || !wxOpenService.getWxOpenComponentService().checkSignature(timestamp, nonce, signature)) {
+                || !wechatOpenService.getWxOpenComponentService().checkSignature(timestamp, nonce, signature)) {
             throw new IllegalArgumentException("非法请求，可能属于伪造的请求！");
         }
 
         // aes加密的消息
         WxOpenXmlMessage inMessage = WxOpenXmlMessage.fromEncryptedXml(requestBody,
-                wxOpenService.getWxOpenConfigStorage(), timestamp, nonce, msgSignature);
-        log.debug(LOGTAG + "\n消息解密后内容为----：\n{} ", inMessage.toString());
-        log.debug(LOGTAG + "\n消息解密后内容为----：\n{} ", inMessage.toString());
+                wechatOpenService.getWxOpenConfigStorage(), timestamp, nonce, msgSignature);
         log.debug(LOGTAG + "\n消息解密后内容为----：\n{} ", inMessage.toString());
         try {
-            String out = wxOpenService.getWxOpenComponentService().route(inMessage);
+            String out = wechatOpenService.getWxOpenComponentService().route(inMessage);
             log.debug(LOGTAG + "\n组装回复信息：{}", out);
+            if (StringUtils.equalsAnyIgnoreCase(inMessage.getInfoType(), "unauthorized")) {
+                Specification<OpenAuthorizationInfo> specification = Specifications.<OpenAuthorizationInfo>and()
+                        .eq("authorizerAppid", inMessage.getAuthorizerAppid())
+                        .build();
+                OpenAuthorizationInfo authorizationInfo = openAuthorizationInfoService.findAllNoPage(specification).iterator().next();
+                authorizationInfo.setEnabled(false);
+                openAuthorizationInfoService.update(authorizationInfo);
+                    log.debug(LOGTAG + "公众号【{}】 已取消对平台的授权， 记录主键为【{}】", authorizationInfo.getNickName(), authorizationInfo.getId());
+            }
         } catch (WxErrorException e) {
             log.error("receive_ticket", e);
         }
-        return "success";
+        return WeChatConstant.SUCCESS;
     }
 
     @ApiOperation(value = "接收公众号回调事件")
@@ -100,30 +114,30 @@ public class WechatNotifyController {
                         + " timestamp=[{}], nonce=[{}], requestBody=[\n{}\n] ",
                 appId, openid, signature, encType, msgSignature, timestamp, nonce, requestBody);
         if (!StringUtils.equalsIgnoreCase("aes", encType)
-                || !wxOpenService.getWxOpenComponentService().checkSignature(timestamp, nonce, signature)) {
+                || !wechatOpenService.getWxOpenComponentService().checkSignature(timestamp, nonce, signature)) {
             throw new IllegalArgumentException("非法请求，可能属于伪造的请求！");
         }
 
         String out = "";
         // aes加密的消息
         WxMpXmlMessage inMessage = WxOpenXmlMessage.fromEncryptedMpXml(requestBody,
-                wxOpenService.getWxOpenConfigStorage(), timestamp, nonce, msgSignature);
+                wechatOpenService.getWxOpenConfigStorage(), timestamp, nonce, msgSignature);
         try {
             log.debug(LOGTAG + "inMessage接收消息：{}", inMessage.toString());
             // 自定义消息处理，若没有自定义返回NULL
-            log.debug(LOGTAG + "开始自定义处理了……………………");
-            WxMpXmlOutMessage outMessage = customHandler.handle(appId, openid, inMessage, wxOpenService);
+            log.debug(LOGTAG + "CustomHandler开始自定义处理了……………………");
+            WxMpXmlOutMessage outMessage = customHandler.handle(appId, openid, inMessage, wechatOpenService);
             // 每个托管公众号的Handle处理
             if (outMessage == null) {
-                log.debug(LOGTAG + "自定义处理返回为空，开始公众号处理……………………");
-                outMessage = wxOpenService.getWxOpenMessageRouter().route(inMessage, appId);
+                log.debug(LOGTAG + "CustomHandler自定义处理返回为空，开始公众号处理……………………");
+                outMessage = wechatOpenService.getWxOpenMessageRouter().route(inMessage, appId);
             }
             // 返回空值
             if (outMessage == null) {
                 log.debug(LOGTAG + "公众号处理为空……………………：{}", WeChatConstant.SUCCESS);
                 out = WeChatConstant.SUCCESS;
             } else {
-                out = WxOpenXmlMessage.wxMpOutXmlMessageToEncryptedXml(outMessage, wxOpenService.getWxOpenConfigStorage());
+                out = WxOpenXmlMessage.wxMpOutXmlMessageToEncryptedXml(outMessage, wechatOpenService.getWxOpenConfigStorage());
                 log.debug(LOGTAG + "outMessage输出消息：{}", outMessage.toString());
             }
         } catch (Exception e) {

@@ -3,6 +3,7 @@
  */
 package com.simbest.boot.wxopen.service;
 
+import com.simbest.boot.wxopen.auth.service.IOpenAuthorizationInfoService;
 import com.simbest.boot.wxopen.config.WechatOpenProperties;
 import com.simbest.boot.wxopen.config.WxOpenRedisConfigStorage;
 import com.simbest.boot.wxopen.mp.handler.ICustomHandler;
@@ -40,6 +41,9 @@ public class WechatOpenService extends WxOpenServiceImpl {
 
     @Autowired
     private WechatOpenProperties wechatOpenProperties;
+
+    @Autowired
+    private IOpenAuthorizationInfoService openAuthorizationInfoService;
 
     @Getter
     private WxOpenMessageRouter wxOpenMessageRouter;
@@ -81,6 +85,7 @@ public class WechatOpenService extends WxOpenServiceImpl {
         redisConfigStorage.setComponentAppSecret(wechatOpenProperties.getComponentSecret());
         redisConfigStorage.setComponentToken(wechatOpenProperties.getComponentToken());
         redisConfigStorage.setComponentAesKey(wechatOpenProperties.getComponentAesKey());
+        redisConfigStorage.setOpenAuthorizationInfoService(openAuthorizationInfoService);
         setWxOpenConfigStorage(redisConfigStorage);
         this.refreshRouter();
     }
