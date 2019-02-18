@@ -11,6 +11,7 @@ import com.simbest.boot.wxopen.mp.handler.ICustomHandler;
 import com.simbest.boot.wxopen.service.WechatOpenService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
@@ -57,10 +58,10 @@ public class WechatNotifyController {
                                 @RequestParam("nonce") String nonce, @RequestParam("signature") String signature,
                                 @RequestParam(name = "encrypt_type", required = false) String encType,
                                 @RequestParam(name = "msg_signature", required = false) String msgSignature) {
-        log.debug(LOGTAG +
-                        "\n接收微信请求：[signature=[{}], encType=[{}], msgSignature=[{}],"
-                        + " timestamp=[{}], nonce=[{}], requestBody=[\n{}\n] ",
-                signature, encType, msgSignature, timestamp, nonce, requestBody);
+//        log.debug(LOGTAG +
+//                        "\n接收来自微信请求：[signature=[{}], encType=[{}], msgSignature=[{}],"
+//                        + " timestamp=[{}], nonce=[{}], requestBody=[\n{}\n] ",
+//                signature, encType, msgSignature, timestamp, nonce, requestBody);
 
         if (!StringUtils.equalsIgnoreCase("aes", encType)
                 || !wechatOpenService.getWxOpenComponentService().checkSignature(timestamp, nonce, signature)) {
@@ -70,7 +71,7 @@ public class WechatNotifyController {
         // aes加密的消息
         WxOpenXmlMessage inMessage = WxOpenXmlMessage.fromEncryptedXml(requestBody,
                 wechatOpenService.getWxOpenConfigStorage(), timestamp, nonce, msgSignature);
-        log.debug(LOGTAG + "\n消息解密后内容为----：\n{} ", inMessage.toString());
+        log.debug(LOGTAG + "\n接收来自微信请求----：\n{} ", inMessage.toString());
         try {
             String out = wechatOpenService.getWxOpenComponentService().route(inMessage);
             log.debug(LOGTAG + "\n组装回复信息：{}", out);
@@ -109,10 +110,10 @@ public class WechatNotifyController {
             log.debug(LOGTAG + "######全网发布前进行测试######");
         }
 
-        log.debug(LOGTAG +
-                        "接收微信请求：[appId=[{}], openid=[{}], signature=[{}], encType=[{}], msgSignature=[{}],"
-                        + " timestamp=[{}], nonce=[{}], requestBody=[\n{}\n] ",
-                appId, openid, signature, encType, msgSignature, timestamp, nonce, requestBody);
+//        log.debug(LOGTAG +
+//                        "接收来自微信请求：[appId=[{}], openid=[{}], signature=[{}], encType=[{}], msgSignature=[{}],"
+//                        + " timestamp=[{}], nonce=[{}], requestBody=[\n{}\n] ",
+//                appId, openid, signature, encType, msgSignature, timestamp, nonce, requestBody);
         if (!StringUtils.equalsIgnoreCase("aes", encType)
                 || !wechatOpenService.getWxOpenComponentService().checkSignature(timestamp, nonce, signature)) {
             throw new IllegalArgumentException("非法请求，可能属于伪造的请求！");
@@ -123,22 +124,31 @@ public class WechatNotifyController {
         WxMpXmlMessage inMessage = WxOpenXmlMessage.fromEncryptedMpXml(requestBody,
                 wechatOpenService.getWxOpenConfigStorage(), timestamp, nonce, msgSignature);
         try {
-            log.debug(LOGTAG + "inMessage接收消息：{}", inMessage.toString());
+            log.debug(LOGTAG + "接收来自微信请求：{}", inMessage.toString());
             // 自定义消息处理，若没有自定义返回NULL
             log.debug(LOGTAG + "CustomHandler开始自定义处理了……………………");
-            WxMpXmlOutMessage outMessage = customHandler.handle(appId, openid, inMessage, wechatOpenService);
-            // 每个托管公众号的Handle处理
-            if (outMessage == null) {
-                log.debug(LOGTAG + "CustomHandler自定义处理返回为空，开始公众号处理……………………");
-                outMessage = wechatOpenService.getWxOpenMessageRouter().route(inMessage, appId);
-            }
-            // 返回空值
-            if (outMessage == null) {
-                log.debug(LOGTAG + "公众号处理为空……………………：{}", WeChatConstant.SUCCESS);
+//            if(WxOpenConstants.WX_TEMPLATE_MSG_FINISH.equals(inMessage.getEvent())){
+//                out = WeChatConstant.SUCCESS;
+//            }
+            if(!WxConsts.XmlMsgType.TEXT.equals(inMessage.getMsgType())){
                 out = WeChatConstant.SUCCESS;
-            } else {
-                out = WxOpenXmlMessage.wxMpOutXmlMessageToEncryptedXml(outMessage, wechatOpenService.getWxOpenConfigStorage());
-                log.debug(LOGTAG + "outMessage输出消息：{}", outMessage.toString());
+            }
+            else {
+                WxMpXmlOutMessage outMessage = customHandler.handle(appId, openid, inMessage, wechatOpenService);
+                // outMessage = null;
+                // 每个托管公众号的Handle处理
+                if (outMessage == null) {
+                    log.debug(LOGTAG + "CustomHandler自定义处理返回为空，开始公众号处理……………………");
+                    outMessage = wechatOpenService.getWxOpenMessageRouter().route(inMessage, appId);
+                }
+                // 返回空值
+                if (outMessage == null) {
+                    log.debug(LOGTAG + "公众号处理为空……………………：{}", WeChatConstant.SUCCESS);
+                    out = WeChatConstant.SUCCESS;
+                } else {
+                    out = WxOpenXmlMessage.wxMpOutXmlMessageToEncryptedXml(outMessage, wechatOpenService.getWxOpenConfigStorage());
+                    log.debug(LOGTAG + "outMessage输出消息：{}", outMessage.toString());
+                }
             }
         } catch (Exception e) {
             log.error(LOGTAG + "处理微信消息发生未知异常！");
