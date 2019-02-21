@@ -29,7 +29,7 @@ public class MpKefuController {
 
     @PostMapping("/sendmessage")
     public JsonResponse sendmessage(@PathVariable String appid, @RequestBody MpKefuMessage message) {
-        WxMpKefuMessage kefuMessage =  WxMpKefuMessage.TEXT().content(message.getContent()).toUser(message.getToUserName()).build();
+        WxMpKefuMessage kefuMessage =  WxMpKefuMessage.TEXT().content(message.getContent()).toUser(message.getToUser()).build();
         try {
             wxOpenService.getWxOpenComponentService().getWxMpServiceByAppid(appid).getKefuService().sendKefuMessage(kefuMessage);
         } catch (WxErrorException e) {
