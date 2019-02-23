@@ -15,7 +15,8 @@ import me.chanjar.weixin.mp.bean.kefu.WxMpKefuMessage;
 import java.util.Date;
 
 /**
- * 用途：
+ * 用途：客服消息
+ * 参考：me.chanjar.weixin.mp.bean.kefu.WxMpXmlOutMessage
  * 作者: lishuyi
  * 时间: 2019/2/20  11:46
  */
