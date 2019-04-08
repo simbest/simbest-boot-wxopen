@@ -130,10 +130,8 @@ public class WechatNotifyController {
 //            if(WxOpenConstants.WX_TEMPLATE_MSG_FINISH.equals(inMessage.getEvent())){
 //                out = WeChatConstant.SUCCESS;
 //            }
-            if(!WxConsts.XmlMsgType.TEXT.equals(inMessage.getMsgType())){
-                out = WeChatConstant.SUCCESS;
-            }
-            else {
+            //仅处理文本消息和图片消息
+            if(WxConsts.XmlMsgType.TEXT.equals(inMessage.getMsgType()) || WxConsts.XmlMsgType.IMAGE.equals(inMessage.getMsgType())){
                 WxMpXmlOutMessage outMessage = customHandler.handle(appId, openid, inMessage, wechatOpenService);
                 // outMessage = null;
                 // 每个托管公众号的Handle处理
@@ -149,6 +147,9 @@ public class WechatNotifyController {
                     out = WxOpenXmlMessage.wxMpOutXmlMessageToEncryptedXml(outMessage, wechatOpenService.getWxOpenConfigStorage());
                     log.debug(LOGTAG + "outMessage输出消息：{}", outMessage.toString());
                 }
+            }
+            else {
+                out = WeChatConstant.SUCCESS;
             }
         } catch (Exception e) {
             log.error(LOGTAG + "处理微信消息发生未知异常！");

@@ -14,7 +14,7 @@ import lombok.Setter;
  */
 public enum  MpKeMsgHandleType implements GenericEnum, Comparable<MpKeMsgHandleType> {
 
-    HTTP("http"), TEMPLATE("template");
+    http("http"), template("template");
 
     @Setter
     @Getter
