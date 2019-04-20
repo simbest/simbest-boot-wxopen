@@ -10,5 +10,10 @@ package com.simbest.boot.wxopen.util;
  */
 public class WxOpenConstants {
 
+    public static final String MSG_TEXT = "text";
+    public static final String MSG_IMAGE = "image";
+    public static final String MSG_FILE = "file";
+
     public static final String WX_TEMPLATE_MSG_FINISH = "TEMPLATESENDJOBFINISH";
+
 }

@@ -7,6 +7,7 @@ import com.simbest.boot.wxopen.WeChatConstant;
 import com.simbest.boot.wxopen.auth.model.OpenAuthorizationInfo;
 import com.simbest.boot.wxopen.auth.service.IOpenAuthorizationInfoService;
 import com.simbest.boot.wxopen.config.WechatMpProperties;
+import com.simbest.boot.wxopen.controller.mp.service.IMpKefuMessageService;
 import com.simbest.boot.wxopen.mp.handler.ICustomHandler;
 import com.simbest.boot.wxopen.service.WechatOpenService;
 import io.swagger.annotations.ApiOperation;
@@ -51,6 +52,9 @@ public class WechatNotifyController {
 
     @Autowired
     private IOpenAuthorizationInfoService openAuthorizationInfoService;
+
+    @Autowired
+    private IMpKefuMessageService mpKefuMessageService;
 
     @ApiOperation(value = "每十分钟接收一下微信ticket")
     @RequestMapping("/receive_ticket")
@@ -126,14 +130,17 @@ public class WechatNotifyController {
         try {
             log.debug(LOGTAG + "接收来自微信请求：{}", inMessage.toString());
             // 自定义消息处理，若没有自定义返回NULL
-            log.debug(LOGTAG + "CustomHandler开始自定义处理了……………………");
 //            if(WxOpenConstants.WX_TEMPLATE_MSG_FINISH.equals(inMessage.getEvent())){
 //                out = WeChatConstant.SUCCESS;
 //            }
             //仅处理文本消息和图片消息
             if(WxConsts.XmlMsgType.TEXT.equals(inMessage.getMsgType()) || WxConsts.XmlMsgType.IMAGE.equals(inMessage.getMsgType())){
+                //先将微信消息保存入库
+                log.debug(LOGTAG + "保存客服消息入库保存……………………");
+                mpKefuMessageService.saveNotifyMpKefuMessage(appId, inMessage);
+                log.debug(LOGTAG + "CustomHandler开始自定义处理了……………………");
+                // 每个托管公众号的定制处理
                 WxMpXmlOutMessage outMessage = customHandler.handle(appId, openid, inMessage, wechatOpenService);
-                // outMessage = null;
                 // 每个托管公众号的Handle处理
                 if (outMessage == null) {
                     log.debug(LOGTAG + "CustomHandler自定义处理返回为空，开始公众号处理……………………");
