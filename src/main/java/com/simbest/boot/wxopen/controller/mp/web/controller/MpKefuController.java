@@ -14,7 +14,6 @@ import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.bean.result.WxMediaUploadResult;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.bean.kefu.WxMpKefuMessage;
-import me.chanjar.weixin.mp.bean.material.WxMediaImgUploadResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
