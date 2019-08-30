@@ -109,8 +109,8 @@
                         <useDefaultDelimiters>true</useDefaultDelimiters>
                     </configuration>
 				</plugin>
-				<!-- 依赖库发布插件 -->
-                <plugin>
+				<!-- 依赖库发布插件  git推送-->
+                <!--<plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
                     <version>${maven-deploy-plugin.version}</version>
@@ -142,16 +142,39 @@
                             <phase>deploy</phase>
                         </execution>
                     </executions>
-                </plugin>
+                </plugin>-->
             </plugins>
         </pluginManagement>
     </build>
 
-	<distributionManagement>
+	<!--git推送-->
+	<!--<distributionManagement>
 		<repository>
 			<id>internal.repo</id>
 			<name>Temporary Staging Repository</name>
 			<url>file://${project.build.directory}/mvn-repo</url>
 		</repository>
-	</distributionManagement>
+	</distributionManagement>-->
+    <!--git推送-->
+
+    <!--本地私服推送-->
+    <repositories>
+        <repository>
+            <id>thirdparty</id>
+            <url>http://10.87.41.250:8081/nexus/content/repositories/thirdparty</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <url>http://10.87.41.250:8081/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://10.87.41.250:8081/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+    <!--本地私服推送-->
+	
 </project>
