@@ -40,13 +40,19 @@ public class MpKefuMessageHandleType extends GenericModel {
     @EntityIdPrefix(prefix = "K") //主键前缀，此为可选项注解
     private String id;
 
+    @Column(nullable = false)
     private String appid;
+
+    @Column(nullable = false)
+    private String appname;
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private MpKeMsgHandleType mpKeMsgHandleType;
 
+    @Column
     private String httpurl;
 
+    @Column
     private String templateid;
 }
