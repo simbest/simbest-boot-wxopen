@@ -4,6 +4,7 @@
 package com.simbest.boot.wxopen.controller.mp.service.impl;
 
 import com.simbest.boot.base.service.impl.GenericService;
+import com.simbest.boot.util.DateUtil;
 import com.simbest.boot.wxopen.controller.mp.model.MpKefuMessage;
 import com.simbest.boot.wxopen.controller.mp.repository.MpKefuMessageRepository;
 import com.simbest.boot.wxopen.controller.mp.service.IMpKefuMessageService;
@@ -40,7 +41,8 @@ public class MpKefuMessageService extends GenericService<MpKefuMessage, String> 
         if(WxConsts.XmlMsgType.IMAGE.equals(inMessage.getMsgType())){
             mpKefuMessage.setImageUrl(inMessage.getPicUrl());
         }
-        mpKefuMessage.setCreateTime(new Date(inMessage.getCreateTime() * 1000L));
+//        mpKefuMessage.setCreateTime(new Date(inMessage.getCreateTime() * 1000L));
+        mpKefuMessage.setCreateTime(DateUtil.getCurrent());
         mpKefuMessage.setMsgType(inMessage.getMsgType());
         return mpKefuMessage;
     }
@@ -51,6 +53,8 @@ public class MpKefuMessageService extends GenericService<MpKefuMessage, String> 
      * @return
      */
     public MpKefuMessage saveNotifyMpKefuMessage(String appid, WxMpXmlMessage inMessage){
+        log.info("正在保存来自公众号【{}】的托管消息", appid);
+        //此处appid为发起托管处理的公众号，如闵企通appid
         return repository.save(makeWxMpXmlMessageToMpKefuMessage(appid, inMessage));
     }
 
@@ -60,7 +64,10 @@ public class MpKefuMessageService extends GenericService<MpKefuMessage, String> 
      * @return
      */
     public MpKefuMessage saveInvokeMpKefuMessage(String appid, MpKefuMessage mpKefuMessage){
-        mpKefuMessage.setFromAppid(appid);
+        //此处appid为发起托管处理的公众号，如闵企通appid
+        //保存客服回复消息的公众号为客服消息里面的公众号，如闵行招商appid
+        log.info("正在保存公众号【{}】主动回复的客服消息", mpKefuMessage.getFromAppid());
         return repository.save(mpKefuMessage);
     }
+
 }

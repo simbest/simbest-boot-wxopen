@@ -62,7 +62,9 @@ public class MpKefuController {
     })
     @PostMapping("/receiveMsgAndSendPassiveMsg")
     public JsonResponse receiveMsgAndSendPassiveMsg(@PathVariable String appid, @RequestBody MpKefuMessage message) {
-        log.info("第三方平台客服消息已接收客服消息【{}】", message);
+        //此处appid为闵企通appid
+        //此处message.getFromAppid()为闵行招商appid
+        log.info("第三方平台已接收托管公众号【{}】即将响应的客服消息【{}】", appid, message);
         WxMpKefuMessage kefuMessage = null;
         if(message.getMsgType().equalsIgnoreCase(WxOpenConstants.MSG_TEXT)) {
             log.info("第三方平台正在组装普通文本消息");
@@ -80,13 +82,13 @@ public class MpKefuController {
             }
         }
         try {
-            log.info("第三方平台正在本地保存客服消息");
-            mpKefuMessageService.saveInvokeMpKefuMessage(appid, message);
-            log.info("第三方平台正在发送托管客服消息");
+            log.info("第三方平台正在保存公众号【{}】主动回复的客服消息", message.getFromAppid());
+            mpKefuMessageService.saveInvokeMpKefuMessage(message.getFromAppid(), message);
+            log.info("第三方平台正在通过托管公众号【{}】推送客服消息", appid);
             boolean ret = wxOpenService.getWxOpenComponentService().getWxMpServiceByAppid(appid).getKefuService().sendKefuMessage(kefuMessage);
-            log.info("第三方平台客服消息发送结果为【{}】", ret);
+            log.info("第三方平台通过托管公众号【{}】推送客服消息结果为【{}】", appid, ret);
         } catch (WxErrorException e) {
-            log.error("第三方平台发送托管客服消息发生异常");
+            log.error("第三方平台通过托管公众号【{}】推送客服消息发生异常【{}】", appid, e.getMessage());
             Exceptions.printException(e);
             return JsonResponse.fail(null, e.getMessage());
         }
@@ -100,8 +102,10 @@ public class MpKefuController {
     })
     @PostMapping("/receiveMsgAndRedirectToMp")
     public JsonResponse receiveMsgAndRedirectToMp(@PathVariable String appid, @RequestBody MpKefuMessage message) {
+        //此处appid为闵行招商appid
+        //此处message.getFromAppid()也为闵行招商appid
         JsonResponse response = JsonResponse.defaultErrorResponse();
-        log.info("第三方平台客服消息已接收客服消息【{}】", message);
+        log.info("第三方平台客服消息已接收公众号【{}】客服消息【{}】", appid, message);
         Specification<MpKefuMessageHandleType> specification = Specifications.<MpKefuMessageHandleType>and()
                 .eq("appid", appid)
                 .build();
@@ -110,9 +114,11 @@ public class MpKefuController {
             MpKefuMessageHandleType mpKefuMessageHandleType = datas.iterator().next();
             log.info("公众号【{}】的客服消息处理方式为【{}】", appid, mpKefuMessageHandleType.getMpKeMsgHandleType().getValue());
             if(MpKeMsgHandleType.http.getValue().equalsIgnoreCase(mpKefuMessageHandleType.getMpKeMsgHandleType().getValue())){
-                log.info("即将向公众号【{}】推送客服消息【{}】", appid, JacksonUtils.obj2json(message));
-                log.info("推送的客服消息的地址为【{}】", mpKefuMessageHandleType.getHttpurl());
+                log.info("第三方平台正在保存公众号【{}】主动回复的客服消息", message.getFromAppid());
+                mpKefuMessageService.saveInvokeMpKefuMessage(message.getFromAppid(), message);
+                log.info("推送公众号【{}】的客服消息的地址为【{}】", appid, mpKefuMessageHandleType.getHttpurl());
                 try {
+                    log.info("公众号【{}】接收的微信消息为【{}】", appid, JacksonUtils.obj2json(message));
                     response = HttpClient.textBody(mpKefuMessageHandleType.getHttpurl())
                             .json(JacksonUtils.obj2json(message))
                             .asBean(JsonResponse.class);

@@ -164,25 +164,25 @@ public class WechatNotifyController {
                     //先将微信消息保存入库
                     MpKefuMessage mpKefuMessage = mpKefuMessageService.saveNotifyMpKefuMessage(appId, inMessage);
                     if(StringUtils.isNotEmpty(mpKefuMessage.getId())){
-                        log.info(LOGTAG + "微信消息已成功保存至第三方平台wx_kefu_message表，记录主键为【{}】",mpKefuMessage.getId());
+                        log.info(LOGTAG + "【{}】微信消息已成功保存至第三方平台wx_kefu_message表，记录主键为【{}】", appId, mpKefuMessage.getId());
                     }else{
-                        log.warn(LOGTAG + "微信消息保存至第三方平台失败，请注意!");
+                        log.warn(LOGTAG + "【{}】微信消息保存至第三方平台失败，请注意!", appId);
                     }
-                    log.info(LOGTAG + "第三方平台CustomHandler开始自定义处理了……………………");
+                    log.info(LOGTAG + "第三方平台CustomHandler开始自定义处理【{}】微信消息了--------------", appId);
                     // 第三方平台CustomHandler定制处理
                     WxMpXmlOutMessage outMessage = customHandler.handle(appId, openid, inMessage, wechatOpenService);
                     // 第三方平台消息Handle处理
                     if (outMessage == null) {
-                        log.info(LOGTAG + "第三方平台CustomHandler自定义处理返回为空，开始第三方平台消息Handle处理……………………");
+                        log.info(LOGTAG + "第三方平台CustomHandler自定义处理返回为空，开始第三方平台消息Handle处理【{}】微信消息了--------------", appId);
                         outMessage = wechatOpenService.getWxOpenMessageRouter().route(inMessage, appId);
                     }
                     // 返回空值
                     if (outMessage == null) {
-                        log.info(LOGTAG + "第三方平台CustomHandler和第三方平台消息Handle处理为空……………………：{}", WeChatConstant.SUCCESS);
+                        log.info(LOGTAG + "第三方平台CustomHandler和第三方平台消息Handle处理【{}】微信消息为空，即将返回默认值success", appId);
                         out = WeChatConstant.SUCCESS;
                     } else {
                         out = WxOpenXmlMessage.wxMpOutXmlMessageToEncryptedXml(outMessage, wechatOpenService.getWxOpenConfigStorage());
-                        log.debug(LOGTAG + "outMessage输出消息：{}", outMessage.toString());
+                        log.debug(LOGTAG + "outMessage输出消息：【{}】", outMessage.toString());
                     }
                 } else {
                     out = WeChatConstant.SUCCESS;
