@@ -67,6 +67,7 @@ public class MpKefuMessageService extends GenericService<MpKefuMessage, String> 
         //此处appid为发起托管处理的公众号，如闵企通appid
         //保存客服回复消息的公众号为客服消息里面的公众号，如闵行招商appid
         log.info("正在保存公众号【{}】主动回复的客服消息", mpKefuMessage.getFromAppid());
+        mpKefuMessage.setCreateTime(DateUtil.getCurrent());
         return repository.save(mpKefuMessage);
     }
 
