@@ -66,11 +66,6 @@ public class WechatNotifyController {
                                 @RequestParam("nonce") String nonce, @RequestParam("signature") String signature,
                                 @RequestParam(name = "encrypt_type", required = false) String encType,
                                 @RequestParam(name = "msg_signature", required = false) String msgSignature) {
-//        log.debug(LOGTAG +
-//                        "\n接收来自微信请求：[signature=[{}], encType=[{}], msgSignature=[{}],"
-//                        + " timestamp=[{}], nonce=[{}], requestBody=[\n{}\n] ",
-//                signature, encType, msgSignature, timestamp, nonce, requestBody);
-
         if (!StringUtils.equalsIgnoreCase("aes", encType)
                 || !wechatOpenService.getWxOpenComponentService().checkSignature(timestamp, nonce, signature)) {
             throw new IllegalArgumentException("非法请求，可能属于伪造的请求！");
@@ -116,17 +111,12 @@ public class WechatNotifyController {
         // aes加密的消息
         WxMpXmlMessage inMessage = WxOpenXmlMessage.fromEncryptedMpXml(requestBody,
                 wechatOpenService.getWxOpenConfigStorage(), timestamp, nonce, msgSignature);
-        //        log.debug(LOGTAG +
-//                        "接收来自微信请求：[appId=[{}], openid=[{}], signature=[{}], encType=[{}], msgSignature=[{}],"
-//                        + " timestamp=[{}], nonce=[{}], requestBody=[\n{}\n] ",
-//                appId, openid, signature, encType, msgSignature, timestamp, nonce, requestBody);
         if (!StringUtils.equalsIgnoreCase("aes", encType)
                 || !wechatOpenService.getWxOpenComponentService().checkSignature(timestamp, nonce, signature)) {
             throw new IllegalArgumentException("非法请求，可能属于伪造的请求！");
         }
         log.debug(LOGTAG + "接收来自微信请求：{}", inMessage.toString());
         // 全网发布测试用例
-//        if (StringUtils.equalsAnyIgnoreCase(appId, wechatMpProperties.getTestAccounts())) {
         if (StringUtils.equalsAnyIgnoreCase(appId, GLOBAL_PUBLISH_ACCOUNT)) {
             log.info(LOGTAG + "######全网发布前进行测试######");
             try {
@@ -155,10 +145,6 @@ public class WechatNotifyController {
         // 非全网发布测试用例
         else {
             try {
-                // 自定义消息处理，若没有自定义返回NULL
-//            if(WxOpenConstants.WX_TEMPLATE_MSG_FINISH.equals(inMessage.getEvent())){
-//                out = WeChatConstant.SUCCESS;
-//            }
                 //仅处理文本消息和图片消息
                 if (WxConsts.XmlMsgType.TEXT.equals(inMessage.getMsgType()) || WxConsts.XmlMsgType.IMAGE.equals(inMessage.getMsgType())) {
                     //先将微信消息保存入库
