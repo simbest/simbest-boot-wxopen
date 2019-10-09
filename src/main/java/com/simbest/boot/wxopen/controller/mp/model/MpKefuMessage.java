@@ -4,7 +4,6 @@
 package com.simbest.boot.wxopen.controller.mp.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.simbest.boot.base.annotations.EntityIdPrefix;
 import com.simbest.boot.base.model.GenericModel;
 import com.simbest.boot.constants.ApplicationConstants;
 import lombok.AllArgsConstructor;
@@ -83,5 +82,11 @@ public class MpKefuMessage extends GenericModel {
     private String miniProgramAppId;
     @Column
     private String miniProgramPagePath;
+
+    @Column(length = 10)
+    private String sourcescene;
+
+    @Column(length = 10)
+    private String sourcescenetype;
 
 }
